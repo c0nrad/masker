@@ -1,20 +1,40 @@
 'use strict';
 
-var app = angular.module('app', []);
+var app = angular.module('app', ['rt.debounce']);
 
-app.controller('MainController', function($scope) {
+app.controller('MainController', function($scope, debounce) {
   $scope.lol = 'abc';
 
+  $scope.radius = 50;
+  $scope.invert = false;
+  $scope.plate = false;
+
   $scope.models = [
-    { shape: 'cube', size: [5,5,5], translation: [-5,-5,-5] },
-    { shape: 'cube', size: [5,5,5], translation: [5,5,5] },
-    { shape: 'cube', size: [5,5,5], translation: [0, 0, 0] },
-    { shape: 'sphere', radius: 3, resolution: 16, translation: [10, 0, 0] }
+    { shape: 'cube', size: [5,5,5], translation: [-5,-5,-5],resolution: 16, radius: 5 },
+    { shape: 'cube', size: [5,5,5], translation: [5,5,5], resolution: 16, radius: 5 },
+    { shape: 'cube', size: [5,5,5], translation: [0, 0, 0], resolution: 16, radius: 5 },
+    { shape: 'sphere', radius: 3, resolution: 16, translation: [10, 0, 0], size: [5,5,5] }
   ];
+
+  $scope.addShape = function() {
+    $scope.models.push({ shape: 'cube', size: [1,1,1], translation: [0,0,0], resolution: 16, radius: 5 });
+  };
+
+  $scope.update = debounce(2000, function() {
+    gProcessor.setJsCad(document.getElementById('code').value);
+  });
+
+  $scope.$watch('models', function(newVal) {
+    $scope.update();
+  }, true);
+
+  $scope.$watchGroup(['radius', 'invert', 'plate'], function() {
+    $scope.update();
+  });
 });
 
 app.filter('modelsToCode', function() {
-  return function(models) {
+  return function(models, plate, radius, invert) {
     if (!models) {
       return '';
     }
@@ -33,7 +53,13 @@ app.filter('modelsToCode', function() {
       }
     }
 
+    //Base
+    if (plate) {
+      out += 'var cylinder = CSG.cylinder({start: [0, 0, -1], end: [0, 0, 0], radius: ' + radius + ', slices: 16});';
+      shapes.push('cylinder');
+    }
 
+    // Add Unions / difference
     var shapesOut = 'return ' + shapes[0];
 
     for (i = 1; i < shapes.length; i += 1) {

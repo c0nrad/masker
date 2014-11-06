@@ -66,28 +66,81 @@
 
       <div class="row">
         <div class="col-md-3">
-          <div class="well" style="height: 600px">
+          <div class="well">
             <h3> Design </h3>
 
-            <select><option>Dog Bone</select> <br/>
-              <button class="btn btn-primary">Add Shape</button>
+            <div ng-repeat="model in models">
+              <select ng-model="model.shape" ng-options="a for a in ['cube', 'sphere']" class="form-control"> </select>
+
+
+              <div ng-if="model.shape === 'cube'">
+                <span class="form-group">
+                  <label> Size:
+                  <div class="row">
+                    <div class="col-md-4">
+                      <input ng-model="model.size[0]" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                      <input ng-model="model.size[1]" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                      <input ng-model="model.size[2]" class="form-control">
+                    </div>
+                  </div>
+                </span>
+              </div>
+
+              <div ng-if="model.shape === 'sphere'">
+                <div cass="form-group">
+                  <label>Radius</label>
+                  <input class="form-control" ng-model="model.radius" >
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label> Translation:
+                <div class="row">
+                  <div class="col-md-4">
+                    <input ng-model="model.translation[0]" class="form-control">
+                  </div>
+                  <div class="col-md-4">
+                    <input ng-model="model.translation[1]" class="form-control">
+                  </div>
+                  <div class="col-md-4">
+                    <input ng-model="model.translation[2]" class="form-control">
+                  </div>
+                </div>
+              </div>
+
+              <hr>
+            </div>
+
+            <button class="btn btn-primary" ng-click="addShape() ">Add Shape</button>
           </div>
 
         </div>
         <div class="col-md-9">
           <div id="viewer"></div>
+
+          <div class="well">
+              <h3> Base Plate </h3>
+            <label> Show Base Plate </label>
+            <input type="checkbox" ng-model="plate">
+            <br/>
+
+            <label> Base Plate Invert: </label>
+            <input type="checkbox" ng-model="invert">
+            <br />
+
+            <label> Radius </label>
+            <div class="row"> <div class="col-md-3">
+            <input type="text" ng-model="radius" class="form-control">
+          </div> </div>
+        </div>
         </div>
       </div>
 
-      <textarea id="code" style="height: 300px" class="form-control">function main() {
-  var cube = CSG.roundedCube({radius: 10, roundradius: 2, resolution: 16});
-  var sphere = CSG.sphere({radius: 10, resolution: 16}).translate([5, 5, 5]);
-  return cube.union(sphere);
-}
-
-
-  {{models | modelsToCode }}
-  </textarea>
+      <textarea id="code" style="height: 300px" class="form-control">{{models | modelsToCode:plate:radius:invert }}</textarea>
 
     <script>
       function updateSolid()
@@ -96,7 +149,7 @@
       }
 
     </script>
-    <input class="btn btn-success" type="submit" value="Update" onclick="updateSolid(); return false;">
+    <input class="btn btn-success" type="submit" value="Update" ng-click="update()">
 
     </div><!-- /.container -->
 
@@ -108,6 +161,7 @@
     <script src="/components/bootstrap/dist/js/bootstrap.min.js"></script>
 
     <script src="/components/angular/angular.js"></script>
+    <script src="/components/angular-debounce/dist/angular-debounce.min.js"> </script>
     <script src="/app.js"> </script>
   </body>
 </html>
