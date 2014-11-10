@@ -10,14 +10,41 @@ app.controller('MainController', function($scope, debounce) {
   $scope.plate = false;
 
   $scope.models = [
-    { shape: 'cube', size: [5,5,5], translation: [-5,-5,-5],resolution: 16, radius: 5 },
-    { shape: 'cube', size: [5,5,5], translation: [5,5,5], resolution: 16, radius: 5 },
+    { shape: 'cube', size: [5,5,5], translation: [-5,-5,0],resolution: 16, radius: 5 },
+    { shape: 'cube', size: [5,5,5], translation: [5,5,0], resolution: 16, radius: 5 },
     { shape: 'cube', size: [5,5,5], translation: [0, 0, 0], resolution: 16, radius: 5 },
     { shape: 'sphere', radius: 3, resolution: 16, translation: [10, 0, 0], size: [5,5,5] }
   ];
 
+  $scope.clear = function() {
+    $scope.models = [];
+  };
+
   $scope.addShape = function() {
     $scope.models.push({ shape: 'cube', size: [1,1,1], translation: [0,0,0], resolution: 16, radius: 5 });
+  };
+
+  $scope.removeShape = function(i) {
+    $scope.models.splice(i, 1);
+  };
+
+  $scope.array = {
+    shapeType: 'cube',
+    startX: -22.5,
+    startY: -22.5,
+    rows: 10,
+    cols: 10,
+    delta: 5
+  };
+
+  $scope.addArray = function(shapeType, startX, startY, rows, cols, delta) {
+    for (var x = 0; x < rows; ++x) {
+      for (var y = 0; y < cols; ++y) {
+        var X = startX + delta * x;
+        var Y = startY + delta * y;
+        $scope.models.push({shape: shapeType, translation:[X, Y, 0], resolution: 16, radius: 5});
+      }
+    }
   };
 
   $scope.update = debounce(2000, function() {
@@ -56,14 +83,21 @@ app.filter('modelsToCode', function() {
     //Base
     if (plate) {
       out += 'var cylinder = CSG.cylinder({start: [0, 0, -1], end: [0, 0, 0], radius: ' + radius + ', slices: 16});';
-      shapes.push('cylinder');
+      shapes.unshift('cylinder');
     }
+
+    if (shapes.length === 0)
+      return out + '}';
 
     // Add Unions / difference
     var shapesOut = 'return ' + shapes[0];
 
     for (i = 1; i < shapes.length; i += 1) {
-      shapesOut += '.union(' + shapes[i] + ')';
+      if (!invert) {
+        shapesOut += '.union(' + shapes[i] + ')';
+      } else {
+        shapesOut += '.subtract(' + shapes[i] + ')';
+      }
     }
     shapesOut += ';\n';
 

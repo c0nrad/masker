@@ -1,18 +1,11 @@
-var static = require('node-static');
+'use strict';
 
-//
-// Create a node-static server instance to serve the './public' folder
-//
-var file = new static.Server('./public');
+var staticServ = require('node-static');
 
-
-
+var file = new staticServ.Server('./public');
 
 require('http').createServer(function (request, response) {
     request.addListener('end', function () {
-        //
-        // Serve files!
-        //
         file.serve(request, response);
     }).resume();
-}).listen(process.env.PORT);
+}).listen(process.env.PORT || 3000);
